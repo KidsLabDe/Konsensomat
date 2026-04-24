@@ -1,3 +1,6 @@
+import eventlet
+eventlet.monkey_patch()
+
 from flask import Flask
 from flask_socketio import SocketIO
 
@@ -11,7 +14,7 @@ def create_app() -> tuple[Flask, SocketIO, GameStateMachine]:
     app = Flask(__name__)
     app.config["SECRET_KEY"] = "einig-oder-aus-dev"
 
-    socketio = SocketIO(app)
+    socketio = SocketIO(app, async_mode="eventlet")
     game_machine = GameStateMachine(on_state_change=broadcast_state)
 
     init_routes(game_machine)
@@ -24,8 +27,7 @@ def create_app() -> tuple[Flask, SocketIO, GameStateMachine]:
 
 def main():
     app, socketio, _ = create_app()
-    socketio.run(app, host="0.0.0.0", port=config.port(), debug=config.debug(),
-                 allow_unsafe_werkzeug=True)
+    socketio.run(app, host="0.0.0.0", port=config.port(), debug=config.debug())
 
 
 if __name__ == "__main__":

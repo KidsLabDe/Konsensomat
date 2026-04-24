@@ -2,6 +2,8 @@ services:
   konsensomat:
     build: .
     restart: unless-stopped
+    environment:
+      - AUTO_ONLINE=1
     volumes:
       - ./data:/app/data
       - ./game_config.json:/app/game_config.json

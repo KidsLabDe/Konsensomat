@@ -15,8 +15,14 @@ def _save(data):
         f.write("\n")
 
 
+def auto_online() -> bool:
+    return os.environ.get("AUTO_ONLINE", "0") == "1"
+
+
 def get_all() -> dict:
-    return _load()
+    data = _load()
+    data["auto_online"] = auto_online()
+    return data
 
 
 def update(section: str, values: dict):

@@ -110,6 +110,16 @@
         #btn-ja   { background: #4ecca3; color: #1a1a2e; }
         #btn-nein { background: #e94560; color: #fff; }
 
+        #nav-area {
+            display: none;
+            gap: 0.6em;
+            padding: 0.6em;
+            flex-shrink: 0;
+        }
+
+        #btn-next   { background: #e94560; color: #fff; }
+        #btn-select { background: #4ecca3; color: #1a1a2e; }
+
         #connection-overlay {
             display: none;
             position: fixed;
@@ -141,6 +151,11 @@
         <button id="btn-nein" class="vote-btn" disabled>NEIN</button>
     </div>
 
+    <div id="nav-area">
+        <button id="btn-next"   class="vote-btn">&#x25B6; Weiter</button>
+        <button id="btn-select" class="vote-btn">&#x2714; Ausw&auml;hlen</button>
+    </div>
+
     <div id="connection-overlay">Verbindung getrennt&hellip;</div>
 
     <script src="/static/js/socket.io.min.js"></script>
@@ -166,6 +181,10 @@
         const voteStatus = document.getElementById('vote-status');
         const btnJa      = document.getElementById('btn-ja');
         const btnNein    = document.getElementById('btn-nein');
+        const btnArea    = document.getElementById('btn-area');
+        const navArea    = document.getElementById('nav-area');
+        const btnNext    = document.getElementById('btn-next');
+        const btnSelect  = document.getElementById('btn-select');
         const overlay    = document.getElementById('connection-overlay');
 
         const phaseNames = {
@@ -206,6 +225,10 @@
                 questionEl.textContent = '';
             }
 
+            const isIdle = state.phase === 'idle';
+            btnArea.style.display = isIdle ? 'none' : 'flex';
+            navArea.style.display = isIdle ? 'flex' : 'none';
+
             btnJa.disabled   = !active;
             btnNein.disabled = !active;
 
@@ -228,6 +251,9 @@
 
         btnJa.addEventListener('click',   () => { if (!btnJa.disabled)   socket.emit('keypress', { key: jaKey   }); });
         btnNein.addEventListener('click', () => { if (!btnNein.disabled) socket.emit('keypress', { key: neinKey }); });
+
+        btnNext.addEventListener('click',   () => socket.emit('keypress', { key: neinKey }));
+        btnSelect.addEventListener('click', () => socket.emit('keypress', { key: jaKey   }));
     </script>
 </body>
 </html>
