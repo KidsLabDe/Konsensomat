@@ -193,6 +193,11 @@ socket.on('game_state', (state) => {
         if (previousPhase !== 'idle') {
             resetModeSelection();
         }
+        // Update buzzer connection status (online mode)
+        if (gameMode === 'online' && state.buzzers) {
+            document.getElementById('bdot-p1').classList.toggle('connected', state.buzzers.player1);
+            document.getElementById('bdot-p2').classList.toggle('connected', state.buzzers.player2);
+        }
     }
 
     showScreen(phase);
@@ -294,6 +299,7 @@ function selectMode(mode) {
         document.getElementById('selection-hint').style.display = '';
     }
     if (mode === 'online') {
+        document.getElementById('buzzer-status').style.display = '';
         document.getElementById('qr-area').style.display = '';
         showQrCodes();
     }

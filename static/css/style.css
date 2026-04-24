@@ -405,6 +405,23 @@ html, body {
     color: #aaa;
 }
 
+/* --- Buzzer connection status (online mode, idle screen) --- */
+#buzzer-status {
+    display: flex;
+    gap: 2em;
+    justify-content: center;
+    margin-bottom: 0.5em;
+}
+
+.buzzer-dot {
+    font-size: 1.6em;
+    font-weight: 700;
+    color: #333;
+    transition: color 0.3s;
+}
+
+.buzzer-dot.connected { color: #4ecca3; }
+
 /* --- Mode selection --- */
 .mode-prompt {
     font-size: 2em;

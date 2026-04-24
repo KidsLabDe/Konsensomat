@@ -19,6 +19,7 @@
             user-select: none;
         }
 
+        /* ---- Status bar ---- */
         #status-bar {
             background: #16213e;
             padding: 0.7em 1em;
@@ -28,29 +29,108 @@
             flex-shrink: 0;
             gap: 0.5em;
         }
-
-        #phase-label {
-            font-size: 1.1em;
-            font-weight: 700;
-            color: #4ecca3;
-        }
-
-        #timer-label {
-            font-size: 1.1em;
-            font-weight: 700;
-            color: #e94560;
-            min-width: 3em;
-            text-align: right;
-        }
-
+        #phase-label { font-size: 1.1em; font-weight: 700; color: #4ecca3; }
+        #timer-label { font-size: 1.1em; font-weight: 700; color: #e94560; min-width: 3em; text-align: right; }
         #player-badge {
-            background: #0f3460;
-            color: #4ecca3;
-            font-size: 0.85em;
+            background: #0f3460; color: #4ecca3;
+            font-size: 0.85em; font-weight: 700;
+            padding: 0.2em 0.8em; border-radius: 1em; white-space: nowrap;
+        }
+
+        /* ---- Idle view ---- */
+        #idle-view {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1em 1em 0.8em;
+            gap: 0.8em;
+        }
+
+        #players-status {
+            display: flex;
+            gap: 1.5em;
+            justify-content: center;
+        }
+
+        .player-dot {
+            font-size: 1em;
             font-weight: 700;
-            padding: 0.2em 0.8em;
-            border-radius: 1em;
-            white-space: nowrap;
+            color: #444;
+            transition: color 0.3s;
+        }
+
+        .player-dot.connected { color: #4ecca3; }
+
+        #cat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6em;
+            width: 100%;
+        }
+
+        #cat-label {
+            font-size: 0.85em;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        #cat-name {
+            font-size: clamp(1.4rem, 6vw, 2rem);
+            font-weight: 700;
+            color: #eee;
+            text-align: center;
+            min-height: 2.5em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 1em;
+        }
+
+        #cat-counter { font-size: 0.9em; color: #555; }
+
+        #btn-next-cat {
+            background: #16213e;
+            color: #4ecca3;
+            border: 2px solid #4ecca3;
+            border-radius: 0.5em;
+            padding: 0.6em 2em;
+            font-size: 1.1em;
+            font-weight: 700;
+            cursor: pointer;
+            touch-action: manipulation;
+            transition: transform 0.1s;
+            width: 100%;
+            max-width: 320px;
+        }
+        #btn-next-cat:active { transform: scale(0.96); }
+
+        #btn-start {
+            background: #4ecca3;
+            color: #1a1a2e;
+            border: none;
+            border-radius: 0.6em;
+            padding: 0.8em;
+            font-size: 1.4em;
+            font-weight: 900;
+            cursor: pointer;
+            touch-action: manipulation;
+            transition: transform 0.1s, opacity 0.2s;
+            width: 100%;
+        }
+        #btn-start:active { transform: scale(0.97); }
+        #btn-start:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        /* ---- Game view ---- */
+        #game-view {
+            display: none;
+            flex: 1;
+            flex-direction: column;
         }
 
         #question-area {
@@ -73,7 +153,6 @@
             min-height: 2.2em;
             flex-shrink: 0;
         }
-
         #vote-status.ja   { color: #4ecca3; }
         #vote-status.nein { color: #e94560; }
         #vote-status.done { color: #888; }
@@ -99,27 +178,12 @@
             align-items: center;
             justify-content: center;
         }
-
         .vote-btn:active { transform: scale(0.93); }
-
-        .vote-btn:disabled {
-            opacity: 0.25;
-            cursor: not-allowed;
-        }
-
+        .vote-btn:disabled { opacity: 0.25; cursor: not-allowed; }
         #btn-ja   { background: #4ecca3; color: #1a1a2e; }
         #btn-nein { background: #e94560; color: #fff; }
 
-        #nav-area {
-            display: none;
-            gap: 0.6em;
-            padding: 0.6em;
-            flex-shrink: 0;
-        }
-
-        #btn-next   { background: #e94560; color: #fff; }
-        #btn-select { background: #4ecca3; color: #1a1a2e; }
-
+        /* ---- Connection overlay ---- */
         #connection-overlay {
             display: none;
             position: fixed;
@@ -131,7 +195,6 @@
             justify-content: center;
             z-index: 100;
         }
-
         #connection-overlay.visible { display: flex; }
     </style>
 </head>
@@ -142,18 +205,31 @@
         <span id="player-badge">Spieler {{ player }}</span>
     </div>
 
-    <div id="question-area">Warte auf Spielstart&hellip;</div>
+    <!-- Idle: Kategorieauswahl + Spielstart -->
+    <div id="idle-view">
+        <div id="players-status">
+            <div class="player-dot" id="dot-p1">&#x25CF; Spieler 1</div>
+            <div class="player-dot" id="dot-p2">&#x25CF; Spieler 2</div>
+        </div>
 
-    <div id="vote-status"></div>
+        <div id="cat-area">
+            <p id="cat-label">Kategorie w&auml;hlen</p>
+            <div id="cat-name">Lade&hellip;</div>
+            <p id="cat-counter"></p>
+            <button id="btn-next-cat">&#x25B6; Weiter</button>
+        </div>
 
-    <div id="btn-area">
-        <button id="btn-ja"   class="vote-btn" disabled>JA</button>
-        <button id="btn-nein" class="vote-btn" disabled>NEIN</button>
+        <button id="btn-start" disabled>Warte auf Mitspieler&hellip;</button>
     </div>
 
-    <div id="nav-area">
-        <button id="btn-next"   class="vote-btn">&#x25B6; Weiter</button>
-        <button id="btn-select" class="vote-btn">&#x2714; Ausw&auml;hlen</button>
+    <!-- Spiel: Abstimmung -->
+    <div id="game-view">
+        <div id="question-area"></div>
+        <div id="vote-status"></div>
+        <div id="btn-area">
+            <button id="btn-ja"   class="vote-btn" disabled>JA</button>
+            <button id="btn-nein" class="vote-btn" disabled>NEIN</button>
+        </div>
     </div>
 
     <div id="connection-overlay">Verbindung getrennt&hellip;</div>
@@ -173,22 +249,48 @@
             })
             .catch(() => {});
 
+        // --- Categories ---
+        let categories = [];
+        let catIndex = 0;
+
+        fetch('/api/categories')
+            .then(r => r.json())
+            .then(cats => {
+                categories = [null].concat(cats); // null = all categories first
+                renderCategory();
+            });
+
+        function renderCategory() {
+            if (!categories.length) return;
+            const name = categories[catIndex] || 'Alle Kategorien';
+            document.getElementById('cat-name').textContent = name;
+            document.getElementById('cat-counter').textContent =
+                (catIndex + 1) + ' / ' + categories.length;
+        }
+
+        document.getElementById('btn-next-cat').addEventListener('click', () => {
+            catIndex = (catIndex + 1) % categories.length;
+            renderCategory();
+        });
+
+        // --- Socket ---
         const socket = io();
 
         const phaseLabel = document.getElementById('phase-label');
         const timerLabel = document.getElementById('timer-label');
+        const idleView   = document.getElementById('idle-view');
+        const gameView   = document.getElementById('game-view');
         const questionEl = document.getElementById('question-area');
         const voteStatus = document.getElementById('vote-status');
         const btnJa      = document.getElementById('btn-ja');
         const btnNein    = document.getElementById('btn-nein');
-        const btnArea    = document.getElementById('btn-area');
-        const navArea    = document.getElementById('nav-area');
-        const btnNext    = document.getElementById('btn-next');
-        const btnSelect  = document.getElementById('btn-select');
+        const btnStart   = document.getElementById('btn-start');
+        const dotP1      = document.getElementById('dot-p1');
+        const dotP2      = document.getElementById('dot-p2');
         const overlay    = document.getElementById('connection-overlay');
 
         const phaseNames = {
-            idle:         'Warten auf Start…',
+            idle:         'Spielstart',
             transition:   'Nächste Frage…',
             voting:       'JETZT ABSTIMMEN!',
             debate:       'DEBATTE!',
@@ -199,7 +301,7 @@
 
         socket.on('connect', () => {
             overlay.classList.remove('visible');
-            phaseLabel.textContent = 'Verbunden';
+            socket.emit('join_as_player', { player: PLAYER });
         });
 
         socket.on('disconnect', () => {
@@ -207,16 +309,33 @@
         });
 
         socket.on('game_state', (state) => {
-            const active = state.phase === 'voting' || state.phase === 'debate';
+            const isIdle  = state.phase === 'idle';
+            const active  = state.phase === 'voting' || state.phase === 'debate';
 
             phaseLabel.textContent = phaseNames[state.phase] || state.phase;
-
             timerLabel.textContent = active ? state.timer_remaining + 's' : '';
 
+            // Switch between idle and game view
+            idleView.style.display  = isIdle ? 'flex' : 'none';
+            gameView.style.display  = isIdle ? 'none' : 'flex';
+
+            // Buzzer connection status
+            if (state.buzzers) {
+                const b = state.buzzers;
+                dotP1.classList.toggle('connected', b.player1);
+                dotP2.classList.toggle('connected', b.player2);
+                const bothReady = b.player1 && b.player2;
+                btnStart.disabled = !bothReady || !isIdle;
+                btnStart.textContent = bothReady
+                    ? 'Spiel starten ▶'
+                    : ((!b.player1 && PLAYER !== 1) || (!b.player2 && PLAYER !== 2))
+                        ? 'Warte auf Mitspieler…'
+                        : 'Warte auf Mitspieler…';
+            }
+
+            // Question display
             if (active && state.question) {
                 questionEl.textContent = state.question;
-            } else if (state.phase === 'idle') {
-                questionEl.textContent = 'Warte auf Spielstart…';
             } else if (state.phase === 'game_over') {
                 questionEl.textContent = 'Keine Einigung erzielt!';
             } else if (state.phase === 'score_screen') {
@@ -225,35 +344,39 @@
                 questionEl.textContent = '';
             }
 
-            const isIdle = state.phase === 'idle';
-            btnArea.style.display = isIdle ? 'none' : 'flex';
-            navArea.style.display = isIdle ? 'flex' : 'none';
-
+            // Voting buttons
             btnJa.disabled   = !active;
             btnNein.disabled = !active;
 
-            const myPlayer   = state.players[PLAYER - 1];
-            const bothVoted  = state.players.every(p => p.has_voted);
+            // Own vote confirmation
+            const myPlayer  = state.players[PLAYER - 1];
+            const bothVoted = state.players.every(p => p.has_voted);
 
             if (active && myPlayer && myPlayer.has_voted) {
                 if (bothVoted && myPlayer.vote) {
                     voteStatus.textContent = myPlayer.vote === 'ja' ? '👍 Ja' : '👎 Nein';
-                    voteStatus.className = myPlayer.vote;
+                    voteStatus.className   = myPlayer.vote;
                 } else {
                     voteStatus.textContent = '✔ Abgestimmt';
-                    voteStatus.className = 'done';
+                    voteStatus.className   = 'done';
                 }
             } else {
                 voteStatus.textContent = '';
-                voteStatus.className = '';
+                voteStatus.className   = '';
             }
         });
 
+        // Start game with selected category
+        btnStart.addEventListener('click', () => {
+            if (!btnStart.disabled) {
+                btnStart.disabled = true;
+                socket.emit('start_game', { category: categories[catIndex] || null });
+            }
+        });
+
+        // Vote buttons
         btnJa.addEventListener('click',   () => { if (!btnJa.disabled)   socket.emit('keypress', { key: jaKey   }); });
         btnNein.addEventListener('click', () => { if (!btnNein.disabled) socket.emit('keypress', { key: neinKey }); });
-
-        btnNext.addEventListener('click',   () => socket.emit('keypress', { key: neinKey }));
-        btnSelect.addEventListener('click', () => socket.emit('keypress', { key: jaKey   }));
     </script>
 </body>
 </html>
