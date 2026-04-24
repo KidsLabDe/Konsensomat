@@ -405,6 +405,77 @@ html, body {
     color: #aaa;
 }
 
+/* --- Mode selection --- */
+.mode-prompt {
+    font-size: 2em;
+    color: #aaa;
+    margin-bottom: 0.8em;
+    text-align: center;
+}
+
+.mode-buttons {
+    display: flex;
+    gap: 2em;
+    justify-content: center;
+}
+
+.mode-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15em;
+    padding: 0.7em 2.5em;
+    border: none;
+    border-radius: 0.5em;
+    cursor: pointer;
+    min-width: 280px;
+    transition: transform 0.1s;
+}
+
+.mode-btn:active { transform: scale(0.96); }
+
+.mode-btn-offline { background: #e94560; color: #fff; }
+.mode-btn-online  { background: #4ecca3; color: #1a1a2e; }
+
+.mode-btn-icon  { font-size: 3em; }
+.mode-btn-label { font-size: 2.5em; font-weight: 900; }
+.mode-btn-sub   { font-size: 1.1em; opacity: 0.75; }
+
+/* --- QR Code area (online mode) --- */
+.qr-hint {
+    font-size: 1.5em;
+    color: #aaa;
+    text-align: center;
+    margin-bottom: 0.8em;
+}
+
+.qr-row {
+    display: flex;
+    gap: 4em;
+    justify-content: center;
+}
+
+.qr-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4em;
+}
+
+.qr-player-label {
+    font-size: 1.5em;
+    font-weight: 700;
+    color: #4ecca3;
+}
+
+.qr-url {
+    font-size: 0.8em;
+    color: #555;
+    max-width: 220px;
+    word-break: break-all;
+    text-align: center;
+}
+
 /* --- Transition screen (Konsensomat) --- */
 #screen-transition {
     position: relative;

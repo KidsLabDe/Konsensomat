@@ -1,0 +1,31 @@
+services:
+  konsensomat:
+    build: .
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data
+      - ./game_config.json:/app/game_config.json
+      - ./questions:/app/questions
+    labels:
+      - "traefik.enable=true"
+
+      # HTTP → HTTPS redirect
+      - "traefik.http.routers.konsensomat.rule=Host(`konsensomat.kidslab.de`)"
+      - "traefik.http.routers.konsensomat.entrypoints=web"
+      - "traefik.http.routers.konsensomat.middlewares=konsensomat-https"
+      - "traefik.http.middlewares.konsensomat-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.konsensomat-https.redirectscheme.permanent=true"
+
+      # HTTPS
+      - "traefik.http.routers.konsensomat-ssl.rule=Host(`konsensomat.kidslab.de`)"
+      - "traefik.http.routers.konsensomat-ssl.entrypoints=websecure"
+      - "traefik.http.routers.konsensomat-ssl.tls=true"
+      - "traefik.http.routers.konsensomat-ssl.tls.certresolver=myresolver"
+      - "traefik.http.services.konsensomat-ssl.loadbalancer.server.port=5001"
+
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true

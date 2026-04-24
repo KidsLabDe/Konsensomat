@@ -4,6 +4,7 @@ let previousPhase = null;
 let categoriesLoaded = false;
 let debateUrgentTriggered = false;
 let tickStarted = false;
+let gameMode = null; // 'online' | 'offline'
 
 // Green keys (Ja) = select, Red keys (Nein) = next
 let greenKeys = ['1', '8'];
@@ -184,9 +185,12 @@ socket.on('game_state', (state) => {
         AudioManager.tick();
     }
 
-    // Load categories when idle
+    // Load categories when idle; reset mode selection on every idle entry
     if (phase === 'idle') {
         loadCategories();
+        if (previousPhase !== 'idle') {
+            resetModeSelection();
+        }
     }
 
     showScreen(phase);
@@ -266,6 +270,48 @@ socket.on('game_state', (state) => {
 
     previousPhase = phase;
 });
+
+// --- Mode selection ---
+function resetModeSelection() {
+    gameMode = null;
+    document.getElementById('mode-selection').style.display = '';
+    document.getElementById('category-grid').style.display = 'none';
+    document.getElementById('selection-hint').style.display = 'none';
+    document.getElementById('qr-area').style.display = 'none';
+}
+
+function selectMode(mode) {
+    gameMode = mode;
+    document.getElementById('mode-selection').style.display = 'none';
+    document.getElementById('category-grid').style.display = '';
+    if (mode === 'offline') {
+        document.getElementById('selection-hint').style.display = '';
+    }
+    if (mode === 'online') {
+        document.getElementById('qr-area').style.display = '';
+        showQrCodes();
+    }
+}
+
+function showQrCodes() {
+    [1, 2].forEach(p => {
+        const url = location.protocol + '//' + location.host + '/buzzer/' + p;
+        document.getElementById('qr-url-p' + p).textContent = url;
+        const container = document.getElementById('qr-p' + p);
+        container.innerHTML = '';
+        new QRCode(container, {
+            text: url,
+            width: 180,
+            height: 180,
+            colorDark: '#eeeeee',
+            colorLight: '#1a1a2e',
+            correctLevel: QRCode.CorrectLevel.H
+        });
+    });
+}
+
+document.getElementById('btn-offline').addEventListener('click', () => selectMode('offline'));
+document.getElementById('btn-online').addEventListener('click', () => selectMode('online'));
 
 // Load categories on first connect
 loadCategories();

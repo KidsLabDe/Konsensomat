@@ -96,11 +96,34 @@
         .bar { display: inline-block; height: 1em; background: #4ecca3; border-radius: 2px; margin-right: 0.5em; vertical-align: middle; }
         .msg { color: #4ecca3; font-size: 0.9em; margin-left: 1em; opacity: 0; transition: opacity 0.3s; }
         .msg.show { opacity: 1; }
+
+        .buzzer-qr-row { display: flex; gap: 3em; justify-content: center; flex-wrap: wrap; }
+        .buzzer-qr-item { display: flex; flex-direction: column; align-items: center; gap: 0.4em; }
+        .qr-player-label { font-size: 1.1em; font-weight: 700; color: #4ecca3; }
+        .qr-url-admin { font-size: 0.8em; color: #666; word-break: break-all; text-align: center; max-width: 200px; }
     </style>
+    <script src="/static/js/qrcode.min.js"></script>
 </head>
 <body>
     <h1>Admin</h1>
     <a href="/" class="btn btn-back">Zum Spiel</a>
+
+    <!-- Buzzer QR Codes -->
+    <h2>Buzzer-Links</h2>
+    <div class="config-section">
+        <div class="buzzer-qr-row">
+            <div class="buzzer-qr-item">
+                <p class="qr-player-label">Spieler 1</p>
+                <div id="admin-qr-p1"></div>
+                <p class="qr-url-admin" id="admin-url-p1"></p>
+            </div>
+            <div class="buzzer-qr-item">
+                <p class="qr-player-label">Spieler 2</p>
+                <div id="admin-qr-p2"></div>
+                <p class="qr-url-admin" id="admin-url-p2"></p>
+            </div>
+        </div>
+    </div>
 
     <!-- Stats Overview -->
     <h2>Statistiken</h2>
@@ -258,8 +281,24 @@ function resetStats() {
     fetch('/api/stats/reset', { method: 'POST' }).then(() => loadStats());
 }
 
+function loadBuzzerQr() {
+    [1, 2].forEach(p => {
+        const url = location.protocol + '//' + location.host + '/buzzer/' + p;
+        document.getElementById('admin-url-p' + p).textContent = url;
+        new QRCode(document.getElementById('admin-qr-p' + p), {
+            text: url,
+            width: 160,
+            height: 160,
+            colorDark: '#eeeeee',
+            colorLight: '#16213e',
+            correctLevel: QRCode.CorrectLevel.H
+        });
+    });
+}
+
 loadConfig();
 loadStats();
+loadBuzzerQr();
 </script>
 </body>
 </html>

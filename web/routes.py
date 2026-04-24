@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, jsonify, request
+from flask import Blueprint, render_template, jsonify, request, Response
 import config
 from game.question_loader import list_categories
 from game import stats
@@ -14,6 +14,11 @@ def init_routes(machine):
     game_machine = machine
 
 
+@bp.route("/robots.txt")
+def robots():
+    return Response("User-agent: *\nDisallow: /\n", mimetype="text/plain")
+
+
 @bp.route("/")
 def game():
     return render_template("game.html")
@@ -27,6 +32,13 @@ def admin():
 @bp.route("/audiotest")
 def audiotest():
     return render_template("audiotest.html")
+
+
+@bp.route("/buzzer/<int:player>")
+def buzzer(player):
+    if player not in (1, 2):
+        return "Player must be 1 or 2", 400
+    return render_template("buzzer.html", player=player)
 
 
 @bp.route("/api/categories")

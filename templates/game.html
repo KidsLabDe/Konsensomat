@@ -32,8 +32,40 @@
         </div>
     </div>
 
-    <div class="category-grid" id="category-grid"></div>
-    <div class="selection-hint">
+    <div id="mode-selection">
+        <p class="mode-prompt">Wie wollt ihr spielen?</p>
+        <div class="mode-buttons">
+            <button id="btn-offline" class="mode-btn mode-btn-offline">
+                <span class="mode-btn-icon">&#x1F3AE;</span>
+                <span class="mode-btn-label">Offline</span>
+                <span class="mode-btn-sub">Physische Taster</span>
+            </button>
+            <button id="btn-online" class="mode-btn mode-btn-online">
+                <span class="mode-btn-icon">&#x1F4F1;</span>
+                <span class="mode-btn-label">Online</span>
+                <span class="mode-btn-sub">Handy-Buzzer</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="qr-area" style="display:none">
+        <p class="qr-hint">Handy-Kameras auf die Codes richten:</p>
+        <div class="qr-row">
+            <div class="qr-item">
+                <p class="qr-player-label">Spieler 1</p>
+                <div id="qr-p1"></div>
+                <p class="qr-url" id="qr-url-p1"></p>
+            </div>
+            <div class="qr-item">
+                <p class="qr-player-label">Spieler 2</p>
+                <div id="qr-p2"></div>
+                <p class="qr-url" id="qr-url-p2"></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="category-grid" id="category-grid" style="display:none"></div>
+    <div class="selection-hint" id="selection-hint" style="display:none">
         <span class="hint-red">ROT = Weiter</span>
         <span class="hint-green">GR&Uuml;N = Ausw&auml;hlen</span>
     </div>
@@ -112,6 +144,7 @@
 <div id="animation-layer" aria-hidden="true"></div>
 <div id="countdown-overlay" aria-hidden="true"></div>
 
+<script src="/static/js/qrcode.min.js"></script>
 <script src="/static/js/socket.io.min.js"></script>
 <script src="/static/js/gsap.min.js"></script>
 <script src="/static/js/animations.js"></script>

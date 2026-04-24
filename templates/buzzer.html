@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Konsensomat &ndash; Spieler {{ player }}</title>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            height: 100dvh;
+            min-height: -webkit-fill-available;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        #status-bar {
+            background: #16213e;
+            padding: 0.7em 1em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            gap: 0.5em;
+        }
+
+        #phase-label {
+            font-size: 1.1em;
+            font-weight: 700;
+            color: #4ecca3;
+        }
+
+        #timer-label {
+            font-size: 1.1em;
+            font-weight: 700;
+            color: #e94560;
+            min-width: 3em;
+            text-align: right;
+        }
+
+        #player-badge {
+            background: #0f3460;
+            color: #4ecca3;
+            font-size: 0.85em;
+            font-weight: 700;
+            padding: 0.2em 0.8em;
+            border-radius: 1em;
+            white-space: nowrap;
+        }
+
+        #question-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.8em 1.2em;
+            text-align: center;
+            font-size: clamp(1rem, 4.5vw, 1.6rem);
+            line-height: 1.4;
+            color: #ccc;
+        }
+
+        #vote-status {
+            text-align: center;
+            font-size: 1.3em;
+            font-weight: 700;
+            padding: 0.4em;
+            min-height: 2.2em;
+            flex-shrink: 0;
+        }
+
+        #vote-status.ja   { color: #4ecca3; }
+        #vote-status.nein { color: #e94560; }
+        #vote-status.done { color: #888; }
+
+        #btn-area {
+            display: flex;
+            gap: 0.6em;
+            padding: 0.6em;
+            flex-shrink: 0;
+        }
+
+        .vote-btn {
+            flex: 1;
+            min-height: 130px;
+            border: none;
+            border-radius: 0.6em;
+            font-size: clamp(2rem, 8vw, 4rem);
+            font-weight: 900;
+            cursor: pointer;
+            touch-action: manipulation;
+            transition: transform 0.1s ease, opacity 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .vote-btn:active { transform: scale(0.93); }
+
+        .vote-btn:disabled {
+            opacity: 0.25;
+            cursor: not-allowed;
+        }
+
+        #btn-ja   { background: #4ecca3; color: #1a1a2e; }
+        #btn-nein { background: #e94560; color: #fff; }
+
+        #connection-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(26, 26, 46, 0.95);
+            color: #888;
+            font-size: 1.3em;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        #connection-overlay.visible { display: flex; }
+    </style>
+</head>
+<body>
+    <div id="status-bar">
+        <span id="phase-label">Verbinde&hellip;</span>
+        <span id="timer-label"></span>
+        <span id="player-badge">Spieler {{ player }}</span>
+    </div>
+
+    <div id="question-area">Warte auf Spielstart&hellip;</div>
+
+    <div id="vote-status"></div>
+
+    <div id="btn-area">
+        <button id="btn-ja"   class="vote-btn" disabled>JA</button>
+        <button id="btn-nein" class="vote-btn" disabled>NEIN</button>
+    </div>
+
+    <div id="connection-overlay">Verbindung getrennt&hellip;</div>
+
+    <script src="/static/js/socket.io.min.js"></script>
+    <script>
+        const PLAYER = {{ player }};
+        let jaKey   = PLAYER === 1 ? '1' : '8';
+        let neinKey = PLAYER === 1 ? '2' : '9';
+
+        fetch('/api/config')
+            .then(r => r.json())
+            .then(cfg => {
+                const k = cfg.keys;
+                jaKey   = PLAYER === 1 ? k.player1_ja   : k.player2_ja;
+                neinKey = PLAYER === 1 ? k.player1_nein : k.player2_nein;
+            })
+            .catch(() => {});
+
+        const socket = io();
+
+        const phaseLabel = document.getElementById('phase-label');
+        const timerLabel = document.getElementById('timer-label');
+        const questionEl = document.getElementById('question-area');
+        const voteStatus = document.getElementById('vote-status');
+        const btnJa      = document.getElementById('btn-ja');
+        const btnNein    = document.getElementById('btn-nein');
+        const overlay    = document.getElementById('connection-overlay');
+
+        const phaseNames = {
+            idle:         'Warten auf Start…',
+            transition:   'Nächste Frage…',
+            voting:       'JETZT ABSTIMMEN!',
+            debate:       'DEBATTE!',
+            evaluating:   'Auswertung…',
+            game_over:    'Game Over',
+            score_screen: 'Ergebnis',
+        };
+
+        socket.on('connect', () => {
+            overlay.classList.remove('visible');
+            phaseLabel.textContent = 'Verbunden';
+        });
+
+        socket.on('disconnect', () => {
+            overlay.classList.add('visible');
+        });
+
+        socket.on('game_state', (state) => {
+            const active = state.phase === 'voting' || state.phase === 'debate';
+
+            phaseLabel.textContent = phaseNames[state.phase] || state.phase;
+
+            timerLabel.textContent = active ? state.timer_remaining + 's' : '';
+
+            if (active && state.question) {
+                questionEl.textContent = state.question;
+            } else if (state.phase === 'idle') {
+                questionEl.textContent = 'Warte auf Spielstart…';
+            } else if (state.phase === 'game_over') {
+                questionEl.textContent = 'Keine Einigung erzielt!';
+            } else if (state.phase === 'score_screen') {
+                questionEl.textContent = 'Spiel beendet — Punkte: ' + state.score;
+            } else {
+                questionEl.textContent = '';
+            }
+
+            btnJa.disabled   = !active;
+            btnNein.disabled = !active;
+
+            const myPlayer   = state.players[PLAYER - 1];
+            const bothVoted  = state.players.every(p => p.has_voted);
+
+            if (active && myPlayer && myPlayer.has_voted) {
+                if (bothVoted && myPlayer.vote) {
+                    voteStatus.textContent = myPlayer.vote === 'ja' ? '👍 Ja' : '👎 Nein';
+                    voteStatus.className = myPlayer.vote;
+                } else {
+                    voteStatus.textContent = '✔ Abgestimmt';
+                    voteStatus.className = 'done';
+                }
+            } else {
+                voteStatus.textContent = '';
+                voteStatus.className = '';
+            }
+        });
+
+        btnJa.addEventListener('click',   () => { if (!btnJa.disabled)   socket.emit('keypress', { key: jaKey   }); });
+        btnNein.addEventListener('click', () => { if (!btnNein.disabled) socket.emit('keypress', { key: neinKey }); });
+    </script>
+</body>
+</html>
