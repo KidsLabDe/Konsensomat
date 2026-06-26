@@ -243,5 +243,35 @@
 
 ---
 
-*Gesamtanzahl: 200 Fragen in 8 Kategorien.*
+## 9. Einfache Sprache
+
+1. Magst du Hunde?
+2. Ist Pizza lecker?
+3. Trinkst du gerne Tee?
+4. Stehst du gerne früh auf?
+5. Ist der Sommer schöner als der Winter?
+6. Hörst du gerne Musik?
+7. Magst du Regen?
+8. Ist Schokolade besser als Obst?
+9. Gehst du gerne zu Fuß?
+10. Magst du Katzen?
+11. Ist ein Buch schöner als ein Film?
+12. Kochst du gerne?
+13. Spielst du gerne Fußball?
+14. Ist Tanzen schön?
+15. Trinkst du gerne Kaffee?
+16. Magst du das Meer?
+17. Reist du gerne?
+18. Schläfst du gerne lange?
+19. Magst du Eis?
+20. Ist Kochen einfach?
+21. Spielst du gerne Spiele?
+22. Magst du Blumen?
+23. Ist Lachen wichtig?
+24. Gehst du gerne einkaufen?
+25. Magst du Schnee?
+
+---
+
+*Gesamtanzahl: 225 Fragen in 9 Kategorien.*
 *Stand: März 2026 — KidsLab gGmbH, Augsburg*
