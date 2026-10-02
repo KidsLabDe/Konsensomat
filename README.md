@@ -209,4 +209,7 @@ Konsensomat/
 Eine interaktive Installation von [KidsLab gGmbH](https://kidslab.de), Augsburg.
 Inspiriert von Adam J. Scarboroughs „The Democracy Machine!".
 
+- **Gregor Walter** — Programmierung & Konzept ([gregor@kidslab.de](mailto:gregor@kidslab.de))
+- **Daniel Greiser** — Hardware & Installation ([daniel@kidslab.de](mailto:daniel@kidslab.de))
+
 
