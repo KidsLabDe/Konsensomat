@@ -5,7 +5,7 @@ let categoriesLoaded = false;
 let debateUrgentTriggered = false;
 let tickStarted = false;
 let gameMode = null; // 'online' | 'offline'
-let autoOnline = false;
+let configuredMode = 'offline'; // 'offline' | 'online' | 'select' (GAME_MODE)
 
 // Green keys (Ja) = select, Red keys (Nein) = next
 let greenKeys = ['1', '8'];
@@ -20,7 +20,8 @@ fetch('/api/config')
         const k = cfg.keys;
         greenKeys = [k.player1_ja, k.player2_ja];
         redKeys = [k.player1_nein, k.player2_nein];
-        autoOnline = !!cfg.auto_online;
+        configuredMode = cfg.game_mode || 'offline';
+        if (previousPhase === 'idle') resetModeSelection();
     })
     .catch(() => {});
 
@@ -280,8 +281,8 @@ socket.on('game_state', (state) => {
 
 // --- Mode selection ---
 function resetModeSelection() {
-    if (autoOnline) {
-        selectMode('online');
+    if (configuredMode === 'online' || configuredMode === 'offline') {
+        selectMode(configuredMode);
         return;
     }
     gameMode = null;
@@ -297,6 +298,8 @@ function selectMode(mode) {
     document.getElementById('category-grid').style.display = '';
     if (mode === 'offline') {
         document.getElementById('selection-hint').style.display = '';
+        document.getElementById('buzzer-status').style.display = 'none';
+        document.getElementById('qr-area').style.display = 'none';
     }
     if (mode === 'online') {
         document.getElementById('buzzer-status').style.display = '';

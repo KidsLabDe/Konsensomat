@@ -15,13 +15,20 @@ def _save(data):
         f.write("\n")
 
 
-def auto_online() -> bool:
-    return os.environ.get("AUTO_ONLINE", "0") == "1"
+def game_mode() -> str:
+    """Spielmodus aus GAME_MODE: 'offline' (Default, Pi), 'online' (Handy-Buzzer) oder 'select' (Auswahl anzeigen)."""
+    mode = os.environ.get("GAME_MODE", "").strip().lower()
+    if mode in ("offline", "online", "select"):
+        return mode
+    # Rückwärtskompatibel: AUTO_ONLINE=1
+    if os.environ.get("AUTO_ONLINE", "0") == "1":
+        return "online"
+    return "offline"
 
 
 def get_all() -> dict:
     data = _load()
-    data["auto_online"] = auto_online()
+    data["game_mode"] = game_mode()
     return data
 
 

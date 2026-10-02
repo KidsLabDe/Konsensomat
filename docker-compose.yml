@@ -3,7 +3,7 @@ services:
     build: .
     restart: unless-stopped
     environment:
-      - AUTO_ONLINE=1
+      - GAME_MODE=online
     volumes:
       - ./data:/app/data
       - ./game_config.json:/app/game_config.json

@@ -10,6 +10,7 @@ ExecStart=__UV_PATH__ run python app.py
 Restart=always
 RestartSec=3
 Environment=PYTHONUNBUFFERED=1
+Environment=GAME_MODE=offline
 Environment=PATH=/usr/local/bin:/usr/bin:/bin:__HOME__/.local/bin:__HOME__/.cargo/bin
 
 [Install]
