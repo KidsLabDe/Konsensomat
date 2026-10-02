@@ -39,7 +39,7 @@
 html, body {
     height: 100%;
     overflow: hidden;
-    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    font-family: 'Inter', 'Noto Color Emoji', sans-serif;
     background: #1a1a2e;
     color: #eee;
     cursor: none;
