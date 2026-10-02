@@ -144,10 +144,10 @@ html, body {
 /* --- Tutorial steps --- */
 .tutorial {
     position: relative;
-    height: 6em;
+    height: 8em;
     width: 100%;
     max-width: 900px;
-    margin-bottom: 1.5em;
+    margin-bottom: 2em;
     overflow: hidden;
 }
 
