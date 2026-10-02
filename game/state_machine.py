@@ -1,10 +1,10 @@
-import random
 import threading
 from typing import Callable
 
 import config
 from game.models import GamePhase, GameSession, Vote
 from game.question_loader import load
+from game import question_deck
 from game import stats
 
 
@@ -29,9 +29,7 @@ class GameStateMachine:
         questions = load(category)
         if not questions:
             return
-        random.shuffle(questions)
-        n = config.questions_per_game()
-        questions = questions[:n]
+        questions = question_deck.draw(category, questions, config.questions_per_game())
         self._category = category
         self.session = GameSession(questions=questions)
         stats.record_game_start()
