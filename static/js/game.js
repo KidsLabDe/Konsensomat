@@ -87,7 +87,7 @@ function showScreen(phase) {
 // --- Vote indicator helpers ---
 function voteIndicator(player, showVotes) {
     if (!player.has_voted) return '\u23F3';
-    if (!showVotes) return '\u2714';
+    if (!showVotes) return '\u2705';
     return player.vote === 'ja' ? '\uD83D\uDC4D Ja' : '\uD83D\uDC4E Nein';
 }
 
