@@ -51,6 +51,11 @@ def questions_per_game() -> int:
     return _load()["timers"].get("questions_per_game", 5)
 
 
+def exclude_from_all() -> list[str]:
+    """Categories that are not mixed into "Alle Kategorien"."""
+    return _load().get("questions", {}).get("exclude_from_all", [])
+
+
 def end_screen_time() -> int:
     return _load()["timers"].get("end_screen_seconds", 30)
 

@@ -27,6 +27,9 @@ class GameStateMachine:
         """Load questions and begin the first voting round."""
         self._cancel_timer()
         questions = load(category)
+        if category is None:
+            excluded = set(config.exclude_from_all())
+            questions = [q for q in questions if q.category not in excluded]
         if not questions:
             return
         questions = question_deck.draw(category, questions, config.questions_per_game())

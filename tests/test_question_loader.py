@@ -1,6 +1,7 @@
 import os
 import tempfile
 
+import config
 from game.question_loader import _parse_md, load, list_categories
 
 
@@ -29,23 +30,27 @@ def test_parse_md_ignores_non_questions():
 def test_list_categories_returns_sorted():
     categories = list_categories()
     assert categories == sorted(categories)
-    assert "allgemein" in categories
-    assert "schule" in categories
-    assert "gesellschaft" in categories
+    assert "Alltag & Gesellschaft" in categories
+    assert "Schule & Jugend (10–14 Jahre)" in categories
 
 
 def test_load_all_categories():
     questions = load()
     assert len(questions) > 0
     categories = {q.category for q in questions}
-    assert "allgemein" in categories
-    assert "schule" in categories
+    assert "Alltag & Gesellschaft" in categories
+    assert "Schule & Jugend (10–14 Jahre)" in categories
 
 
 def test_load_single_category():
-    questions = load("allgemein")
+    questions = load("Alltag & Gesellschaft")
     assert len(questions) > 0
-    assert all(q.category == "allgemein" for q in questions)
+    assert all(q.category == "Alltag & Gesellschaft" for q in questions)
+
+
+def test_every_category_fills_a_game():
+    for category in list_categories():
+        assert len(load(category)) >= config.questions_per_game(), category
 
 
 def test_load_nonexistent_category():

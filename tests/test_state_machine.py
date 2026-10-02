@@ -216,3 +216,16 @@ def test_on_state_change_callback_called():
     with patch("game.state_machine.load", return_value=[Question("Q?", "test")]):
         m.start_game("test")
     assert callback.call_count > 0
+
+
+def test_all_categories_skips_excluded():
+    from game.models import Question
+    questions = [Question(text=f"Frage {i}?", category="normal") for i in range(5)]
+    questions += [Question(text=f"Question {i}?", category="Englisch") for i in range(5)]
+    machine = GameStateMachine(on_state_change=MagicMock())
+    with patch("game.state_machine.load", return_value=questions), \
+         patch("config.exclude_from_all", return_value=["Englisch"]):
+        machine.start_game(None)
+    machine._cancel_timer()
+    assert machine.session.questions
+    assert all(q.category == "normal" for q in machine.session.questions)

@@ -12,6 +12,9 @@
     "questions_per_game": 5,
     "end_screen_seconds": 30
   },
+  "questions": {
+    "exclude_from_all": ["Einfache Sprache", "Englische Fragen"]
+  },
   "server": {
     "port": 5001,
     "debug": true
