@@ -1,6 +1,8 @@
 import eventlet
 eventlet.monkey_patch()
 
+import logging
+
 from flask import Flask
 from flask_socketio import SocketIO
 
@@ -26,6 +28,7 @@ def create_app() -> tuple[Flask, SocketIO, GameStateMachine]:
 
 
 def main():
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s: %(message)s")
     app, socketio, _ = create_app()
     socketio.run(app, host="0.0.0.0", port=config.port(), debug=config.debug())
 

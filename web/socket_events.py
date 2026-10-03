@@ -1,3 +1,5 @@
+import logging
+
 from flask import request
 from flask_socketio import SocketIO
 from game.state_machine import GameStateMachine
@@ -7,6 +9,7 @@ from input.keyboard import KeyboardInputHandler
 socketio: SocketIO | None = None
 game_machine: GameStateMachine | None = None
 input_handler = KeyboardInputHandler()
+log = logging.getLogger("konsensomat.input")
 
 # sid -> player number (1 or 2) for connected buzzer pages
 connected_buzzers: dict[str, int] = {}
@@ -54,17 +57,22 @@ def init_socket_events(sio: SocketIO, machine: GameStateMachine):
         phase = machine.session.phase
 
         if key in valid_keys and phase == GamePhase.IDLE:
+            log.info("Taste %r in %s -> Menü", key, phase.value)
             sio.emit("menu_action", {"action": "select", "key": key})
             return
 
         if key in valid_keys and phase in (GamePhase.GAME_OVER, GamePhase.SCORE_SCREEN):
+            log.info("Taste %r in %s -> Neustart", key, phase.value)
             machine.restart_game()
             return
 
         result = input_handler.parse(key)
         if result is not None:
             player_id, vote = result
+            log.info("Taste %r in %s -> Spieler %d %s", key, phase.value, player_id, vote.value)
             machine.register_vote(player_id, vote)
+        else:
+            log.info("Taste %r in %s -> unbekannt, ignoriert", key, phase.value)
 
     @sio.on("start_game")
     def on_start_game(data):

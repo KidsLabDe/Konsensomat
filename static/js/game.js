@@ -12,6 +12,7 @@ let greenKeys = ['1', '8'];
 let redKeys = ['2', '9'];
 let allCategories = [];
 let focusedIndex = 0; // currently highlighted category
+let starting = false; // countdown running — ignore further menu input
 
 // Load key config
 fetch('/api/config')
@@ -31,7 +32,7 @@ function loadCategories() {
         .then(r => r.json())
         .then(categories => {
             allCategories = categories.concat([null]); // null = "Alle Kategorien"
-            focusedIndex = 0;
+            if (focusedIndex >= allCategories.length) focusedIndex = 0;
             buildCategoryList();
             categoriesLoaded = true;
         });
@@ -64,10 +65,18 @@ function selectFocused() {
 }
 
 function startGame(category) {
+    if (starting) return;
+    starting = true;
+    document.getElementById('screen-idle').classList.add('starting');
     AudioManager.start();
     AnimationScenes.gameStart();
     AnimationScenes.countdown(() => {
         socket.emit('start_game', { category: category });
+        // Fallback if the server did not start (e.g. empty category)
+        setTimeout(() => {
+            starting = false;
+            document.getElementById('screen-idle').classList.remove('starting');
+        }, 3000);
     });
 }
 
@@ -115,6 +124,7 @@ function startTutorial() {
 
 // --- Menu action from server (button press on idle) ---
 socket.on('menu_action', (data) => {
+    if (starting || allCategories.length === 0) return;
     if (data.action === 'select' && data.key) {
         if (redKeys.includes(data.key)) {
             focusNext();
@@ -131,6 +141,8 @@ socket.on('game_state', (state) => {
 
     // Phase transition sounds + animations
     if (previousPhase !== phase) {
+        starting = false;
+        document.getElementById('screen-idle').classList.remove('starting');
         debateUrgentTriggered = false;
         tickStarted = false;
         AudioManager.stop('tick');
@@ -153,7 +165,9 @@ socket.on('game_state', (state) => {
             }
         } else if (phase === 'voting') {
             CutoutAnimator.clearAll();
-            setTimeout(() => AnimationScenes.votingEnter(), 200);
+            setTimeout(() => {
+                if (previousPhase === 'voting') AnimationScenes.votingEnter();
+            }, 200);
             AudioManager.voting();
         } else if (phase === 'debate') {
             AnimationScenes.disagreement();
@@ -188,10 +202,12 @@ socket.on('game_state', (state) => {
         AudioManager.tick();
     }
 
-    // Load categories when idle; reset mode selection on every idle entry
+    // Reload categories and reset mode selection on every idle entry
+    // (not on every broadcast — that would reset the focused category)
     if (phase === 'idle') {
-        loadCategories();
         if (previousPhase !== 'idle') {
+            focusedIndex = 0;
+            loadCategories();
             resetModeSelection();
         }
         // Update buzzer connection status (online mode)
@@ -328,8 +344,15 @@ function showQrCodes() {
 document.getElementById('btn-offline').addEventListener('click', () => selectMode('offline'));
 document.getElementById('btn-online').addEventListener('click', () => selectMode('online'));
 
-// Load categories on first connect
-loadCategories();
+
+// Rebuild idle scene (curtains, announcer) when the window size changes
+let resizeTimer = null;
+window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+        if (previousPhase === 'idle' && !starting) AnimationScenes.idle();
+    }, 200);
+});
 
 // Initialize animation engine
 CutoutAnimator.init();

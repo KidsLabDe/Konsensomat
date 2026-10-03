@@ -9,9 +9,9 @@ Hardware:
   GP19 - Taster rechts (geschlossen = gedrueckt)
   GP18 - LED im Taster rechts
 
-HID-Tastatur:
-  Taster links  -> Taste "1"
-  Taster rechts -> Taste "2"
+HID-Tastatur (PLAYER unten einstellen):
+  Spieler 1: Taster links -> "1" (Ja), Taster rechts -> "2" (Nein)
+  Spieler 2: Taster links -> "8" (Ja), Taster rechts -> "9" (Nein)
 
 Beim Druecken gehen beide Taster-LEDs fuer 10 Sekunden aus.
 NeoPixel zeigt Rainbow im Idle, nach Tastendruck 10s Ergebnis-Farbe.
@@ -26,6 +26,8 @@ from adafruit_hid.keyboard import Keyboard
 from adafruit_hid.keycode import Keycode
 
 # --- Konfiguration ---
+PLAYER = 1  # 1 oder 2 — vor dem Aufspielen fuer jeden Pico setzen!
+
 NEOPIXEL_PIN = board.GP22
 NEOPIXEL_COUNT = 60
 NEOPIXEL_BRIGHTNESS = 0.3
@@ -33,7 +35,8 @@ NEOPIXEL_BRIGHTNESS = 0.3
 LED_OFF_DURATION = 10  # Sekunden, die beide LEDs nach Tastendruck aus bleiben
 RESULT_DURATION = 10   # Sekunden, die die Ergebnis-Farbe angezeigt wird
 
-DEBOUNCE_TIME = 0.05  # 50ms Entprellung
+DEBOUNCE_TIME = 0.03  # Zustand muss 30ms stabil sein (Druecken und Loslassen)
+KEY_HOLD_TIME = 0.03  # Taste 30ms gedrueckt halten, damit der Host sie sicher sieht
 
 RAINBOW_SPEED = 0.02  # Sekunden pro Rainbow-Schritt
 
@@ -64,14 +67,39 @@ led_right.direction = digitalio.Direction.OUTPUT
 # --- HID Keyboard ---
 keyboard = Keyboard(usb_hid.devices)
 
+if PLAYER == 1:
+    KEY_LEFT, KEY_RIGHT = Keycode.ONE, Keycode.TWO
+else:
+    KEY_LEFT, KEY_RIGHT = Keycode.EIGHT, Keycode.NINE
+
 # --- Zustand ---
 leds_off_until = 0      # Zeitpunkt, ab dem LEDs wieder angehen
 result_until = 0         # Zeitpunkt, ab dem wieder Rainbow laeuft
 result_color = None      # Aktuelle Ergebnis-Farbe oder None fuer Rainbow
 rainbow_offset = 0       # Laufender Offset fuer Rainbow-Animation
 last_rainbow_step = 0    # Zeitpunkt des letzten Rainbow-Schritts
-prev_left = False
-prev_right = False
+key_release_at = 0     # Zeitpunkt, zu dem die gehaltene Taste losgelassen wird (0 = keine)
+
+
+class DebouncedButton:
+    """Meldet einen Druck erst, wenn der Pegel DEBOUNCE_TIME lang stabil ist."""
+
+    def __init__(self, pin):
+        self.pin = pin
+        self.raw = False         # zuletzt gelesener Rohzustand
+        self.stable = False      # entprellter Zustand
+        self.changed_at = 0      # Zeitpunkt der letzten Rohaenderung
+
+    def pressed_edge(self, now):
+        """True genau einmal pro Druck (steigende Flanke nach Entprellung)."""
+        raw = not self.pin.value  # LOW = gedrueckt wegen Pull-Up
+        if raw != self.raw:
+            self.raw = raw
+            self.changed_at = now
+        if raw != self.stable and now - self.changed_at >= DEBOUNCE_TIME:
+            self.stable = raw
+            return raw
+        return False
 
 
 def wheel(pos):
@@ -119,12 +147,11 @@ def show_result(color):
 
 def handle_press(name, keycode, result_col):
     """Tastendruck verarbeiten: HID senden, LEDs aus, Ergebnis anzeigen."""
-    global leds_off_until
+    global leds_off_until, key_release_at
 
     print(f"[TASTER] {name} gedrueckt -> sende Keycode {keycode}")
     keyboard.press(keycode)
-    keyboard.release(keycode)
-    print(f"[HID] Keycode {keycode} gesendet")
+    key_release_at = time.monotonic() + KEY_HOLD_TIME
 
     # Beide Taster-LEDs fuer 10 Sekunden ausschalten
     set_button_leds(False)
@@ -139,6 +166,7 @@ set_button_leds(True)
 
 print("========================================")
 print("Konsensomat - Taster-Controller")
+print(f"  Spieler: {PLAYER}")
 print(f"  NeoPixel: {NEOPIXEL_COUNT} Pixel an GP22")
 print(f"  Taster links: GP21, LED: GP20")
 print(f"  Taster rechts: GP19, LED: GP18")
@@ -148,8 +176,22 @@ print("========================================")
 print("[INIT] Taster-Controller gestartet, warte auf Eingabe...")
 
 # --- Hauptschleife ---
+debounced_left = DebouncedButton(button_left)
+debounced_right = DebouncedButton(button_right)
+
 while True:
     now = time.monotonic()
+
+    # Taster zuerst lesen, damit kein Druck durch NeoPixel-Updates verloren geht
+    if debounced_left.pressed_edge(now):
+        handle_press("LINKS", KEY_LEFT, (0, 255, 0))  # Gruen
+    if debounced_right.pressed_edge(now):
+        handle_press("RECHTS", KEY_RIGHT, (255, 0, 0))  # Rot
+
+    # Gehaltene Taste(n) nach KEY_HOLD_TIME loslassen
+    if key_release_at > 0 and now >= key_release_at:
+        keyboard.release_all()
+        key_release_at = 0
 
     # LEDs wieder einschalten wenn Sperrzeit abgelaufen
     if leds_off_until > 0 and now >= leds_off_until:
@@ -167,21 +209,4 @@ while True:
     if result_color is None:
         rainbow_step()
 
-    # Taster lesen (LOW = gedrueckt wegen Pull-Up)
-    left_pressed = not button_left.value
-    right_pressed = not button_right.value
-
-    # Linker Taster: steigende Flanke -> Taste "1"
-    if left_pressed and not prev_left:
-        handle_press("LINKS", Keycode.ONE, (0, 255, 0))  # Gruen
-        time.sleep(DEBOUNCE_TIME)
-
-    # Rechter Taster: steigende Flanke -> Taste "2"
-    if right_pressed and not prev_right:
-        handle_press("RECHTS", Keycode.TWO, (255, 0, 0))  # Rot
-        time.sleep(DEBOUNCE_TIME)
-
-    prev_left = left_pressed
-    prev_right = right_pressed
-
-    time.sleep(0.01)  # 10ms Polling
+    time.sleep(0.002)  # 2ms Polling

@@ -202,6 +202,16 @@ def test_vote_ignored_in_transition():
     assert machine.session.players[0].vote is None
 
 
+def test_start_game_ignored_when_not_idle():
+    m = make_machine()
+    first_question = m.session.current_question
+    with patch("game.state_machine.load") as load:
+        m.start_game("test")
+    load.assert_not_called()
+    assert m.session.phase == GamePhase.VOTING
+    assert m.session.current_question is first_question
+
+
 def test_duplicate_vote_ignored_in_voting():
     m = make_machine()
     m.register_vote(1, Vote.JA)

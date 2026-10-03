@@ -25,6 +25,8 @@ class GameStateMachine:
 
     def start_game(self, category: str | None = None):
         """Load questions and begin the first voting round."""
+        if self.session.phase != GamePhase.IDLE:
+            return  # z.B. zweiter Start-Klick während des Countdowns
         self._cancel_timer()
         questions = load(category)
         if category is None:
