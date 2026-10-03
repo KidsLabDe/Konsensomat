@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Konsensomat</title>
+    <link rel="preload" href="/static/fonts/victorian-parlor.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="/static/css/fonts.css">
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
@@ -114,7 +115,7 @@
         <span id="debate-question-number">Frage 1/10</span>
         <span id="debate-score-display">Punkte: 0</span>
     </div>
-    <div class="debate-label">DEBATTE!</div>
+    <div class="debate-label">Debatte!</div>
     <div class="question-text" id="debate-question-text"></div>
     <div class="debate-timer" id="debate-timer">120</div>
     <div class="debate-hint">Ihr habt jetzt 2 Minuten f&uuml;r eine Diskussion &mdash; Einigt euch, oder Game Over!</div>
@@ -132,7 +133,6 @@
 
 <!-- GAME OVER SCREEN -->
 <div id="screen-game_over" class="screen">
-    <div class="game-over-label">GAME OVER</div>
     <div class="game-over-message">Keine Einigung erzielt!</div>
     <div class="final-score">Punkte: <span id="gameover-score">0</span></div>
     <div class="restart-hint pulse-text">Beliebige Taste zum Neustarten</div>

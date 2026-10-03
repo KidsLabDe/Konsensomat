@@ -11,6 +11,16 @@ const CutoutAnimator = {
         this._layer = document.getElementById('animation-layer');
     },
 
+    /** Layout unit: 1 at 1080p, 2 at 2160p — all pixel sizes in scenes are multiplied by it */
+    u() {
+        return window.innerHeight / 1080;
+    },
+
+    /** Rendered width of a spawned element (falls back while the image is still loading) */
+    _width(el) {
+        return el.offsetWidth || 600 * this.u();
+    },
+
     /** Preload images into browser cache */
     preloadImages(paths) {
         paths.forEach(src => {
@@ -87,11 +97,12 @@ const CutoutAnimator = {
         const startProps = {};
         const vw = window.innerWidth;
         const vh = window.innerHeight;
+        const margin = 50 * this.u();
 
-        if (from === 'left') startProps.x = -500;
-        else if (from === 'right') startProps.x = vw + 100;
-        else if (from === 'top') startProps.y = -500;
-        else if (from === 'bottom') startProps.y = vh + 100;
+        if (from === 'left') startProps.x = -this._width(el) - margin;
+        else if (from === 'right') startProps.x = vw + margin;
+        else if (from === 'top') startProps.y = -el.offsetHeight - margin;
+        else if (from === 'bottom') startProps.y = vh + margin;
 
         gsap.set(el, startProps);
         const tl = gsap.timeline();
@@ -109,11 +120,12 @@ const CutoutAnimator = {
         const vw = window.innerWidth;
         const vh = window.innerHeight;
         const target = {};
+        const margin = 50 * this.u();
 
-        if (to === 'left') target.x = -500;
-        else if (to === 'right') target.x = vw + 100;
-        else if (to === 'top') target.y = -500;
-        else if (to === 'bottom') target.y = vh + 100;
+        if (to === 'left') target.x = -this._width(el) - margin;
+        else if (to === 'right') target.x = vw + margin;
+        else if (to === 'top') target.y = -el.offsetHeight - margin;
+        else if (to === 'bottom') target.y = vh + margin;
 
         const tl = gsap.timeline();
         tl.to(el, {
@@ -160,7 +172,7 @@ const CutoutAnimator = {
 
     /** Monty Python foot stomp from above */
     stompDown(el, targetY) {
-        gsap.set(el, { y: -800, scaleY: 1 });
+        gsap.set(el, { y: -(el.offsetHeight || 800 * this.u()), scaleY: 1 });
         const tl = gsap.timeline();
         // Fast drop
         tl.to(el, {

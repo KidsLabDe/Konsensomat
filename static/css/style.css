@@ -1,16 +1,41 @@
-/* --- Victorian Font --- */
-@font-face {
-    font-family: 'VictorianParlor';
-    src: url('/static/fonts/Victorian Parlor Vintage Alternate_free.ttf') format('truetype');
-    font-weight: normal;
-    font-style: normal;
+/* --- Design-Tokens ---
+   Alle Größen in rem. 1rem = 1/67.5 der Bildschirmhöhe:
+   16px bei 1080p (Full HD), 32px bei 2160p (4K) — Layout sieht auf beiden gleich aus.
+   Die Animationen (animations.js) rechnen mit derselben Einheit (CutoutAnimator.u()). */
+:root {
+    --bg: #1a1a2e;
+    --surface: #16213e;
+    --surface-2: #0f3460;
+    --red: #e94560;
+    --green: #4ecca3;
+    --text: #eee;
+    --muted: #aaa;
+    --dim: #777;
+
+    --font-display: 'VictorianParlor', 'Ubuntu', serif;
+    --font-body: 'Ubuntu', 'Noto Color Emoji', sans-serif;
+
+    --fs-hero: 9rem;      /* Konsensomat */
+    --fs-display: 6rem;   /* DEBATTE!, Geschafft! */
+    --fs-question: 4.5rem;
+    --fs-lead: 2.5rem;    /* Untertitel, Tutorial, Endnachricht */
+    --fs-body: 1.75rem;   /* Header, Hinweise, Spielernamen */
+    --fs-small: 1.25rem;
+
+    /* Freier Bereich zwischen den Vorhängen (Vorhang = 0.56 × Bildhöhe je Seite) */
+    --stage-w: 42rem;
+    /* Breite für Header / Inhalte im Spiel (ohne Vorhang) */
+    --content-w: 70rem;
+}
+
+html {
+    font-size: min(calc(100vh / 67.5), calc(100vw / 120));
 }
 
 /* --- Countdown Overlay --- */
 #countdown-overlay {
     position: fixed;
-    top: 0; left: 0;
-    width: 100vw; height: 100vh;
+    inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -39,9 +64,9 @@
 html, body {
     height: 100%;
     overflow: hidden;
-    font-family: 'Inter', 'Noto Color Emoji', sans-serif;
-    background: #1a1a2e;
-    color: #eee;
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
     cursor: none;
     user-select: none;
 }
@@ -49,12 +74,14 @@ html, body {
 /* --- Screen management --- */
 .screen {
     display: none;
+    position: relative;
     width: 100vw;
     height: 100vh;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 2em;
+    padding: 3rem 4rem;
+    text-align: center;
 }
 
 .screen.active {
@@ -62,195 +89,148 @@ html, body {
 }
 
 /* --- Idle screen --- */
+#screen-idle > * {
+    transition: opacity 0.3s;
+}
+
+#screen-idle.starting > * {
+    opacity: 0;
+}
+
 #screen-idle h1 {
-    font-size: 8em;
-    font-weight: 900;
-    margin-bottom: 0.1em;
-    color: #e94560;
+    font-family: var(--font-display);
+    font-size: var(--fs-hero);
+    font-weight: 400;
+    line-height: 1;
+    color: var(--red);
+    text-shadow: 0 0.06em 0 rgba(0, 0, 0, 0.35);
 }
 
 .subtitle {
-    font-size: 3em;
-    color: #aaa;
-    margin-bottom: 1em;
-}
-
-.category-select {
-    margin-bottom: 1.5em;
-}
-
-.category-select h2 {
-    font-size: 1.4em;
-    margin-bottom: 0.7em;
+    font-family: var(--font-display);
+    font-size: 3.5rem;
+    line-height: 1;
     color: #ccc;
-}
-
-#category-buttons {
-    display: flex;
-    gap: 0.7em;
-    flex-wrap: wrap;
-    justify-content: center;
-    margin-bottom: 0.7em;
-}
-
-.btn {
-    display: inline-block;
-    padding: 0.6em 1.5em;
-    font-size: 1.2em;
-    border: none;
-    border-radius: 0.4em;
-    cursor: pointer;
-    font-weight: 700;
-    text-decoration: none;
-    transition: transform 0.1s;
-}
-
-.btn:active {
-    transform: scale(0.95);
-}
-
-.btn-category {
-    background: #16213e;
-    color: #eee;
-    border: 2px solid #0f3460;
-}
-
-.btn-category:hover {
-    background: #0f3460;
-}
-
-.btn-start {
-    background: #e94560;
-    color: #fff;
-}
-
-.btn-start:hover {
-    background: #c73a52;
-}
-
-.btn-restart {
-    background: #e94560;
-    color: #fff;
-    font-size: 1.4em;
-    margin-top: 1em;
-}
-
-.hint {
-    font-size: 0.9em;
-    color: #666;
-    margin-top: 1.5em;
+    margin: 0.25rem 0 2.5rem;
 }
 
 /* --- Tutorial steps --- */
 .tutorial {
     position: relative;
-    height: 8em;
+    height: 6rem;
     width: 100%;
-    max-width: 900px;
-    margin-bottom: 2em;
-    overflow: hidden;
+    max-width: var(--stage-w);
+    margin-bottom: 2.5rem;
 }
 
 .tutorial-step {
     position: absolute;
-    top: 0; left: 0; right: 0;
+    inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.8em;
+    gap: 1rem;
     opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
+    transform: translateY(1rem);
+    transition: opacity 0.4s ease, transform 0.4s ease;
     pointer-events: none;
 }
 
+/* Neuer Schritt blendet erst ein, wenn der alte weg ist — keine Überlappung */
 .tutorial-step.visible {
     opacity: 1;
     transform: translateY(0);
+    transition-delay: 0.4s;
 }
 
 .tutorial-icon {
-    font-size: 4em;
+    font-size: 3.5rem;
+    line-height: 1;
 }
 
 .tutorial-text {
-    font-size: 3em;
+    font-size: 1.9rem;
+    line-height: 1.25;
     color: #ccc;
     text-align: left;
+    text-wrap: balance;
 }
 
-/* --- Category list (idle screen) --- */
+/* --- Category grid (idle screen) --- */
 .category-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5em;
-    max-width: 700px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
     width: 100%;
-    margin-bottom: 1em;
-    max-height: 40vh;
-    overflow-y: auto;
+    max-width: var(--stage-w);
 }
 
 .category-option {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #16213e;
-    border: 2px solid transparent;
-    border-radius: 0.5em;
-    padding: 0.6em 1.5em;
+    min-height: 3.75rem;
+    background: var(--surface);
+    border: 0.15rem solid transparent;
+    border-radius: 0.6rem;
+    padding: 0.5rem 1rem;
     transition: border-color 0.2s, background 0.2s, transform 0.2s;
 }
 
+/* "Alle Kategorien" (letzter Eintrag) über die volle Breite */
+.category-option:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+}
+
 .category-option.focused {
-    border-color: #4ecca3;
-    background: #0f3460;
-    transform: scale(1.05);
+    border-color: var(--green);
+    background: var(--surface-2);
+    transform: scale(1.06);
 }
 
 .category-option.selected {
-    border-color: #4ecca3;
-    background: #4ecca3;
+    border-color: var(--green);
+    background: var(--green);
 }
 
 .category-option.selected .category-label {
-    color: #1a1a2e;
+    color: var(--bg);
 }
 
 .category-label {
-    font-size: 1.6em;
-    font-weight: 600;
-    color: #eee;
+    font-size: 1.5rem;
+    font-weight: 500;
+    line-height: 1.2;
+    color: var(--text);
 }
 
 .category-option:not(.focused) .category-label {
-    color: #888;
+    color: var(--dim);
 }
 
 /* --- Selection hint --- */
 .selection-hint {
     display: flex;
-    gap: 2em;
-    margin-top: 1em;
-    font-size: 1.8em;
+    gap: 3rem;
+    margin-top: 2rem;
+    font-size: var(--fs-body);
     font-weight: 700;
 }
 
 .hint-red {
-    color: #e94560;
+    color: var(--red);
 }
 
 .hint-green {
-    color: #4ecca3;
+    color: var(--green);
 }
 
 /* --- Restart prompt --- */
 .restart-hint {
-    font-size: 1.5em;
+    font-size: 2rem;
     font-weight: 700;
-    color: #4ecca3;
-    margin-top: 1em;
-    margin-bottom: 0.5em;
+    color: var(--green);
+    margin-top: 2rem;
 }
 
 .pulse-text {
@@ -262,92 +242,101 @@ html, body {
     50% { opacity: 0.4; }
 }
 
-/* --- Question header --- */
+/* --- Question header (oben, fest positioniert — springt nicht mit der Fragenlänge) --- */
 .question-header {
+    position: absolute;
+    top: 2.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
     display: flex;
     justify-content: space-between;
-    width: 100%;
-    max-width: 800px;
-    font-size: 1.2em;
-    color: #aaa;
-    margin-bottom: 1em;
+    width: var(--content-w);
+    font-size: var(--fs-body);
+    font-weight: 500;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
 }
 
 /* --- Question text --- */
 .question-text {
-    font-size: 2.5em;
+    font-size: var(--fs-question);
     font-weight: 700;
-    text-align: center;
-    max-width: 900px;
-    line-height: 1.3;
-    margin-bottom: 1em;
+    max-width: 72rem;
+    line-height: 1.2;
+    text-wrap: balance;
+    margin-bottom: 2.5rem;
 }
 
 /* --- Timer bar (voting) --- */
 .timer-bar-container {
-    width: 80%;
-    max-width: 700px;
-    height: 20px;
-    background: #16213e;
-    border-radius: 10px;
+    width: 44rem;
+    height: 1.25rem;
+    background: var(--surface);
+    border-radius: 0.625rem;
     overflow: hidden;
-    margin-bottom: 0.5em;
+    margin-bottom: 0.75rem;
 }
 
 .timer-bar {
     height: 100%;
-    background: #e94560;
-    border-radius: 10px;
+    background: var(--red);
+    border-radius: 0.625rem;
     transition: width 0.9s linear;
 }
 
 .timer-label {
-    font-size: 1.3em;
-    color: #aaa;
-    margin-bottom: 1em;
+    font-size: var(--fs-body);
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
 }
 
-/* --- Vote status --- */
+/* --- Vote status (unten, fest positioniert) --- */
 .vote-status {
+    position: absolute;
+    bottom: 4rem;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
-    gap: 4em;
-    margin-top: 1em;
+    gap: 8rem;
 }
 
 .player-vote {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.3em;
+    gap: 0.5rem;
+    min-width: 10rem;
 }
 
 .player-name {
-    font-size: 1.3em;
-    font-weight: 600;
+    font-size: var(--fs-body);
+    font-weight: 500;
+    color: var(--muted);
 }
 
 .vote-indicator {
-    font-size: 2.5em;
+    font-size: 3.5rem;
+    line-height: 1.1;
+    font-weight: 700;
 }
 
-.vote-indicator.voted {
-    color: #4ecca3;
-}
-
+.vote-indicator.voted,
 .vote-indicator.ja {
-    color: #4ecca3;
+    color: var(--green);
 }
 
 .vote-indicator.nein {
-    color: #e94560;
+    color: var(--red);
 }
 
 /* --- Debate screen --- */
 .debate-label {
-    font-size: 3em;
-    font-weight: 900;
-    color: #e94560;
-    margin-bottom: 0.3em;
+    font-family: var(--font-display);
+    font-size: var(--fs-display);
+    line-height: 1;
+    color: var(--red);
+    margin-bottom: 1.5rem;
     animation: pulse 1.5s ease-in-out infinite;
 }
 
@@ -356,11 +345,15 @@ html, body {
     50% { opacity: 0.5; }
 }
 
+#screen-debate .question-text {
+    margin-bottom: 1rem;
+}
+
 .debate-timer {
-    font-size: 8em;
-    font-weight: 900;
-    color: #e94560;
-    margin: 0.2em 0;
+    font-size: 9rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--red);
     font-variant-numeric: tabular-nums;
 }
 
@@ -369,70 +362,71 @@ html, body {
 }
 
 .debate-hint {
-    font-size: 1.3em;
-    color: #aaa;
-    margin-bottom: 1em;
+    margin-top: 1rem;
+    font-size: var(--fs-body);
+    color: var(--muted);
+    max-width: var(--content-w);
 }
 
-/* --- Game Over --- */
-.game-over-label {
-    font-size: 4em;
-    font-weight: 900;
-    color: #e94560;
+/* --- End screens: Text im unteren Teil, oben ist Platz für Pokal / Game-Over-Bild --- */
+#screen-game_over {
+    justify-content: flex-start;
+    padding-top: 68vh;
 }
 
-.game-over-message {
-    font-size: 1.5em;
-    color: #aaa;
-    margin: 0.5em 0;
+#screen-score_screen {
+    justify-content: flex-start;
+    padding-top: 40vh;
 }
 
-/* --- Score screen --- */
+.game-over-message,
+.score-message {
+    font-size: var(--fs-lead);
+    color: var(--muted);
+}
+
 .score-screen-label {
-    font-size: 4em;
-    font-weight: 900;
-    color: #4ecca3;
+    font-family: var(--font-display);
+    font-size: var(--fs-display);
+    line-height: 1;
+    color: var(--green);
+    margin-bottom: 1rem;
 }
 
 .final-score {
-    font-size: 2.5em;
+    font-size: 3.5rem;
     font-weight: 700;
-    margin: 0.5em 0;
-}
-
-.score-message {
-    font-size: 1.3em;
-    color: #aaa;
+    margin: 0.75rem 0;
+    font-variant-numeric: tabular-nums;
 }
 
 /* --- Buzzer connection status (online mode, idle screen) --- */
 #buzzer-status {
     display: flex;
-    gap: 2em;
+    gap: 3rem;
     justify-content: center;
-    margin-bottom: 0.5em;
+    margin-bottom: 1rem;
 }
 
 .buzzer-dot {
-    font-size: 1.6em;
+    font-size: var(--fs-body);
     font-weight: 700;
     color: #333;
     transition: color 0.3s;
 }
 
-.buzzer-dot.connected { color: #4ecca3; }
+.buzzer-dot.connected { color: var(--green); }
 
 /* --- Mode selection --- */
 .mode-prompt {
-    font-size: 2em;
-    color: #aaa;
-    margin-bottom: 0.8em;
-    text-align: center;
+    font-size: 2rem;
+    color: var(--muted);
+    margin-bottom: 1.25rem;
 }
 
 .mode-buttons {
     display: flex;
-    gap: 2em;
+    gap: 3rem;
     justify-content: center;
 }
 
@@ -440,35 +434,34 @@ html, body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.15em;
-    padding: 0.7em 2.5em;
+    gap: 0.25rem;
+    padding: 1rem 3rem;
     border: none;
-    border-radius: 0.5em;
+    border-radius: 0.75rem;
     cursor: pointer;
-    min-width: 280px;
+    min-width: 18rem;
     transition: transform 0.1s;
 }
 
 .mode-btn:active { transform: scale(0.96); }
 
-.mode-btn-offline { background: #e94560; color: #fff; }
-.mode-btn-online  { background: #4ecca3; color: #1a1a2e; }
+.mode-btn-offline { background: var(--red); color: #fff; }
+.mode-btn-online  { background: var(--green); color: var(--bg); }
 
-.mode-btn-icon  { font-size: 3em; }
-.mode-btn-label { font-size: 2.5em; font-weight: 900; }
-.mode-btn-sub   { font-size: 1.1em; opacity: 0.75; }
+.mode-btn-icon  { font-size: 3rem; }
+.mode-btn-label { font-size: 2.5rem; font-weight: 700; }
+.mode-btn-sub   { font-size: 1.1rem; opacity: 0.75; }
 
 /* --- QR Code area (online mode) --- */
 .qr-hint {
-    font-size: 1.5em;
-    color: #aaa;
-    text-align: center;
-    margin-bottom: 0.8em;
+    font-size: 1.5rem;
+    color: var(--muted);
+    margin-bottom: 1rem;
 }
 
 .qr-row {
     display: flex;
-    gap: 4em;
+    gap: 4rem;
     justify-content: center;
 }
 
@@ -476,41 +469,32 @@ html, body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.4em;
+    gap: 0.5rem;
+}
+
+.qr-item img,
+.qr-item canvas {
+    width: 11rem !important;
+    height: 11rem !important;
 }
 
 .qr-player-label {
-    font-size: 1.5em;
+    font-size: 1.5rem;
     font-weight: 700;
-    color: #4ecca3;
+    color: var(--green);
 }
 
 .qr-url {
-    font-size: 0.8em;
+    font-size: 0.9rem;
     color: #555;
-    max-width: 220px;
+    max-width: 14rem;
     word-break: break-all;
-    text-align: center;
-}
-
-/* --- Transition screen (Konsensomat) --- */
-#screen-transition {
-    position: relative;
-}
-
-#screen-transition .question-header {
-    position: absolute;
-    top: 1.5em;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 10;
 }
 
 /* --- Animation overlay --- */
 #animation-layer {
     position: fixed;
-    top: 0; left: 0;
-    width: 100vw; height: 100vh;
+    inset: 0;
     pointer-events: none;
     z-index: 100;
     overflow: hidden;
@@ -518,7 +502,37 @@ html, body {
 
 #animation-layer img {
     position: absolute;
+    top: 0;
+    left: 0;
     will-change: transform, opacity;
+}
+
+/* --- Konsensomat-Maschine mit Text im Schild (Übergang) --- */
+#animation-layer .machine-wrap {
+    position: absolute;
+    top: 0;
+    left: 0;
+    will-change: transform;
+}
+
+#animation-layer .machine-wrap img {
+    position: static;
+    display: block;
+    width: 100%;
+}
+
+.machine-display {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6%;
+    text-align: center;
+    font-family: var(--font-body);
+    font-weight: 700;
+    line-height: 1.2;
+    color: #4a2e12;
+    text-wrap: balance;
 }
 
 /* --- Evaluating flash --- */
@@ -531,11 +545,11 @@ html, body {
 }
 
 @keyframes flash-green {
-    0% { background: #4ecca3; }
-    100% { background: #1a1a2e; }
+    0% { background: var(--green); }
+    100% { background: var(--bg); }
 }
 
 @keyframes flash-red {
-    0% { background: #e94560; }
-    100% { background: #1a1a2e; }
+    0% { background: var(--red); }
+    100% { background: var(--bg); }
 }
